@@ -1,0 +1,6 @@
+{
+  "name": "Moovio",
+  "description": "A premium movie and TV show streaming application built with sleek dark glassmorphic interfaces, dynamic animated transitions, and custom streaming integrations via Vidking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Camera Frame Top-Left Crop Marker -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFB200"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 28 36 L 28 28 L 36 28" />
+    <!-- Camera Frame Top-Right Crop Marker -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFB200"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 80 36 L 80 28 L 72 28" />
+    <!-- Camera Frame Bottom-Left Crop Marker -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeColor="#FF5100"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 28 72 L 28 80 L 36 80" />
+    <!-- Camera Frame Bottom-Right Crop Marker -->
+    <path
+        android:strokeWidth="2.5"
+        android:strokeColor="#FF5100"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 80 72 L 80 80 L 72 80" />
+
+    <!-- Sleek cinematic lens circle outline -->
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="#33FFFFFF"
+        android:pathData="M 54 22 A 32 32 0 1 0 54 86 A 32 32 0 1 0 54 22" />
+
+    <!-- Premium play core button inside the 66dp Android safe zone -->
+    <path
+        android:pathData="M45,39.5 L69,54 L45,68.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="45"
+                android:startY="39.5"
+                android:endX="69"
+                android:endY="68.5"
+                android:type="linear">
+                <item android:offset="0" android:color="#FFC000" />
+                <item android:offset="1" android:color="#FF4000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>
