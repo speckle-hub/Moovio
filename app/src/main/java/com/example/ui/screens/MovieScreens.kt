@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.*
@@ -41,6 +42,7 @@ import com.example.ui.viewmodel.MovieViewModel
 // Sealed Hierarchy for Lightweight and Robust Screen Navigation
 sealed class Screen {
     object Home : Screen()
+    object Profile : Screen()
     data class Details(val tmdbId: String) : Screen()
     data class Player(val url: String) : Screen()
 }
@@ -53,8 +55,19 @@ fun MoovioAppContainer(viewModel: MovieViewModel) {
     val screenBackStack = remember { mutableStateListOf<Screen>(Screen.Home) }
 
     fun navigateTo(screen: Screen) {
-        screenBackStack.add(screen)
-        currentScreen = screen
+        if (screen is Screen.Home) {
+            screenBackStack.clear()
+            screenBackStack.add(Screen.Home)
+            currentScreen = Screen.Home
+        } else if (screen is Screen.Profile) {
+            screenBackStack.clear()
+            screenBackStack.add(Screen.Home)
+            screenBackStack.add(Screen.Profile)
+            currentScreen = Screen.Profile
+        } else {
+            screenBackStack.add(screen)
+            currentScreen = screen
+        }
     }
 
     fun navigateBack() {
@@ -64,9 +77,105 @@ fun MoovioAppContainer(viewModel: MovieViewModel) {
         }
     }
 
+    // Capture system back buttons/gestures to cleanly return within local navigation stack
+    BackHandler(enabled = screenBackStack.size > 1) {
+        navigateBack()
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = ObsidianAbyss
+        containerColor = ObsidianAbyss,
+        bottomBar = {
+            if (currentScreen is Screen.Home || currentScreen is Screen.Profile) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(TranslucentGlassCard.copy(alpha = 0.85f))
+                            .border(1.dp, GlassBorder, RoundedCornerShape(32.dp))
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val isHome = currentScreen is Screen.Home
+                        val isProfile = currentScreen is Screen.Profile
+
+                        // Home Glass Capsule Tab
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(if (isHome) AmberGold.copy(alpha = 0.2f) else Color.Transparent)
+                                .clickable { navigateTo(Screen.Home) }
+                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isHome) Icons.Filled.Home else Icons.Outlined.Home,
+                                contentDescription = "Home",
+                                tint = if (isHome) AmberGold else CoolGray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            AnimatedVisibility(
+                                visible = isHome,
+                                enter = fadeIn() + expandHorizontally(),
+                                exit = fadeOut() + shrinkHorizontally()
+                            ) {
+                                Row {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Home",
+                                        color = AmberGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+
+                        // Profile Glass Capsule Tab
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(if (isProfile) AmberGold.copy(alpha = 0.2f) else Color.Transparent)
+                                .clickable { navigateTo(Screen.Profile) }
+                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isProfile) Icons.Filled.Person else Icons.Outlined.Person,
+                                contentDescription = "Profile",
+                                tint = if (isProfile) AmberGold else CoolGray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            AnimatedVisibility(
+                                visible = isProfile,
+                                enter = fadeIn() + expandHorizontally(),
+                                exit = fadeOut() + shrinkHorizontally()
+                            ) {
+                                Row {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Profile",
+                                        color = AmberGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -95,6 +204,12 @@ fun MoovioAppContainer(viewModel: MovieViewModel) {
                                 viewModel.recordHistory(media, season = s, episode = e)
                                 navigateTo(Screen.Player(url))
                             }
+                        )
+                    }
+                    is Screen.Profile -> {
+                        ProfileScreen(
+                            viewModel = viewModel,
+                            onPlayAdultVideo = { url -> navigateTo(Screen.Player(url)) }
                         )
                     }
                     is Screen.Details -> {
@@ -271,7 +386,7 @@ fun HomeScreen(
                                 .padding(horizontal = 16.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(TranslucentGlassCard)
-                                .border(1.dp, ObsidianSteel, RoundedCornerShape(12.dp))
+                                .border(1.dp, GlassBorder, RoundedCornerShape(12.dp))
                                 .padding(24.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -485,8 +600,8 @@ fun HeroBanner(
                 Surface(
                     onClick = { onMediaClick(mediaItem.tmdbId) },
                     shape = RoundedCornerShape(12.dp),
-                    color = ObsidianSteel.copy(alpha = 0.8f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+                    color = TranslucentGlassCard,
+                    border = BorderStroke(1.dp, GlassBorder)
                 ) {
                     Box(modifier = Modifier.padding(10.dp)) {
                         Icon(
@@ -517,10 +632,11 @@ fun SearchAndDiscoverPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(30.dp))
-                .background(TranslucentGlassCard),
+                .background(TranslucentGlassCard)
+                .border(1.dp, GlassBorder, RoundedCornerShape(30.dp)),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AmberGold,
-                unfocusedBorderColor = ObsidianSteel,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
                 focusedTextColor = PremiumWhite,
                 unfocusedTextColor = PremiumWhite,
                 focusedLabelColor = AmberGold,
@@ -572,7 +688,7 @@ fun SearchAndDiscoverPanel(
                         .background(if (isSelected) AmberGold else TranslucentGlassCard)
                         .border(
                             1.dp,
-                            if (isSelected) Color.Transparent else ObsidianSteel,
+                            if (isSelected) NeonGlow else GlassBorder,
                             RoundedCornerShape(12.dp)
                         )
                         .clickable { onFilterChange(filter) }
@@ -599,7 +715,7 @@ fun EmptyDiscoveryState(query: String, onLaunchCustomClick: () -> Unit) {
             .padding(16.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(TranslucentGlassCard)
-            .border(1.dp, ObsidianSteel, RoundedCornerShape(16.dp))
+            .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -688,7 +804,8 @@ fun MediaCarouselCard(mediaItem: MediaItem, onClick: () -> Unit) {
                 .width(115.dp)
                 .height(170.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(ObsidianSteel)
+                .background(TranslucentGlassCard)
+                .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -756,7 +873,8 @@ fun MediaGridCard(mediaItem: MediaItem, onClick: () -> Unit) {
             modifier = Modifier
                 .aspectRatio(0.68f)
                 .clip(RoundedCornerShape(14.dp))
-                .background(ObsidianSteel)
+                .background(TranslucentGlassCard)
+                .border(1.dp, GlassBorder, RoundedCornerShape(14.dp))
         ) {
             if (mediaItem.posterPath.isNotBlank()) {
                 AsyncImage(
@@ -823,7 +941,7 @@ fun ContinueWatchingCarousel(
                         .width(180.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(TranslucentGlassCard)
-                        .border(1.dp, ObsidianSteel, RoundedCornerShape(16.dp))
+                        .border(1.dp, GlassBorder, RoundedCornerShape(16.dp))
                         .clickable { onPlayClick(history) }
                 ) {
                     Column {
@@ -831,7 +949,7 @@ fun ContinueWatchingCarousel(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(100.dp)
-                                .background(ObsidianSteel)
+                                .background(TranslucentGlassCard)
                         ) {
                             if (history.posterPath.isNotBlank()) {
                                 AsyncImage(
@@ -952,7 +1070,8 @@ fun WatchlistCarousel(
                                 .width(105.dp)
                                 .height(150.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(ObsidianSteel)
+                                .background(TranslucentGlassCard)
+                                .border(1.dp, GlassBorder, RoundedCornerShape(14.dp))
                         ) {
                             if (item.posterPath.isNotBlank()) {
                                 AsyncImage(
@@ -1096,7 +1215,8 @@ fun DetailsScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(ObsidianSteel)
+                                .background(TranslucentGlassCard)
+                                .border(1.dp, GlassBorder, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
@@ -1246,7 +1366,7 @@ fun DetailsScreen(
                                     .background(if (isSelected) AmberGold else TranslucentGlassCard)
                                     .border(
                                         1.dp,
-                                        if (isSelected) Color.Transparent else ObsidianSteel,
+                                        if (isSelected) Color.Transparent else GlassBorder,
                                         RoundedCornerShape(8.dp)
                                     )
                                     .clickable { selectedSeason = s }
@@ -1283,7 +1403,7 @@ fun DetailsScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(TranslucentGlassCard)
-                                    .border(1.dp, ObsidianSteel, RoundedCornerShape(12.dp))
+                                    .border(1.dp, GlassBorder, RoundedCornerShape(12.dp))
                                     .clickable {
                                         val epPlayerUrl = "https://www.vidking.net/embed/tv/${mediaItem.tmdbId}/$selectedSeason/$e?primaryColor=ff8800&autoplay=true"
                                         onPlayClick(epPlayerUrl, mediaItem, selectedSeason, e)

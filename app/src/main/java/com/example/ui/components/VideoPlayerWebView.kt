@@ -184,16 +184,23 @@ fun VideoPlayerWebView(
             }
 
             webViewClient = object : WebViewClient() {
-                private fun isAdOrRedirectUrl(targetUrl: String): Boolean {
-                    val parsedUri = android.net.Uri.parse(targetUrl)
-                    val host = parsedUri.host ?: return false
-                    val path = parsedUri.path ?: ""
+                private fun isAdOrRedirectUrl(targetUrl: String?): Boolean {
+                    if (targetUrl.isNullOrEmpty()) return true
                     
-                    val scheme = parsedUri.scheme
-                    // Safe guard against non-http/https crashes (like intent:// schemes)
-                    if (scheme != "http" && scheme != "https") {
+                    val parsedUri = try {
+                        android.net.Uri.parse(targetUrl)
+                    } catch (e: Exception) {
                         return true
                     }
+                    
+                    val scheme = parsedUri.scheme
+                    // Safe guard against non-http/https/about crashes (like intent:// schemes, market://, mailto:, tel:)
+                    if (scheme != null && scheme != "http" && scheme != "https" && scheme != "about") {
+                        return true
+                    }
+                    
+                    val host = parsedUri.host ?: ""
+                    val path = parsedUri.path ?: ""
 
                     // Block known intrusive ad/tracker networks & redirects
                     val adKeywords = listOf(
@@ -317,11 +324,7 @@ fun VideoPlayerWebView(
 
     // Custom back click handling: exit fullscreen or close the stream
     BackHandler {
-        if (webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            onClose()
-        }
+        onClose()
     }
 
     // Elegant Dark Theatre Backdrop

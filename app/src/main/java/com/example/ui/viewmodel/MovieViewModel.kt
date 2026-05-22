@@ -23,6 +23,13 @@ class MovieViewModel(private val repository: MovieRepository) : ViewModel() {
     private val _selectedFilter = MutableStateFlow(ContentFilter.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
 
+    private val _adultContentEnabled = MutableStateFlow(false)
+    val adultContentEnabled = _adultContentEnabled.asStateFlow()
+
+    fun toggleAdultContent(enabled: Boolean) {
+        _adultContentEnabled.value = enabled
+    }
+
     // Expose curated/live items via StateFlow
     private val _trendingMovies = MutableStateFlow<List<MediaItem>>(repository.curatedMovies)
     val trendingMovies = _trendingMovies.asStateFlow()
