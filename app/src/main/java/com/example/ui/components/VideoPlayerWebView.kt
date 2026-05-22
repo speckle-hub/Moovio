@@ -31,38 +31,11 @@ fun VideoPlayerWebView(
     modifier: Modifier = Modifier,
     onClose: () -> Unit
 ) {
-    // Elegant Dark Theatre Backdrop
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(ObsidianAbyss),
-        contentAlignment = Alignment.Center
-    ) {
-        val webView = rememberWebViewWithLifecycle(url = url)
-
-        // Custom back click handling: exit fullscreen or close the stream
-        BackHandler {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            } else {
-                onClose()
-            }
-        }
-
-        AndroidView(
-            factory = { webView },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-fun rememberWebViewWithLifecycle(url: String): WebView {
     val context = androidx.compose.ui.platform.LocalContext.current
     val activity = context.findActivity()
 
-    // Create custom WebChromeClient to manage fullscreen custom view safely with crash protection rules
-    val customChromeClient = remember(url) {
+    // 1. Remember custom WebChromeClient to manage fullscreen custom view safely
+    val customChromeClient = remember {
         object : WebChromeClient() {
             var customView: View? = null
             var customViewCallback: CustomViewCallback? = null
@@ -165,7 +138,8 @@ fun rememberWebViewWithLifecycle(url: String): WebView {
         }
     }
 
-    val webView = remember(url) {
+    // 2. Remember a single WebView instance across composition lifecycle
+    val webView = remember {
         WebView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -173,7 +147,7 @@ fun rememberWebViewWithLifecycle(url: String): WebView {
             )
             setBackgroundColor(Color.BLACK)
 
-            // Configure web settings
+            // Configure web settings safely
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -265,10 +239,30 @@ fun rememberWebViewWithLifecycle(url: String): WebView {
         }
     }
 
-    // Load original source stream on composition and handle safe cleanup on dispose
+    // 3. Load the URL when it changes
     DisposableEffect(url) {
+        try {
+            webView.onResume()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            webView.resumeTimers()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         webView.loadUrl(url)
-        
+        onDispose {
+            try {
+                webView.stopLoading()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 4. Handle clean teardown of WebView when the screen leaves composition
+    DisposableEffect(Unit) {
         onDispose {
             // Safe cleanup of custom full screen views
             try {
@@ -278,7 +272,25 @@ fun rememberWebViewWithLifecycle(url: String): WebView {
             }
 
             try {
+                webView.onPause()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            try {
+                webView.pauseTimers()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            try {
                 webView.stopLoading()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            try {
+                webView.loadUrl("about:blank")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -292,26 +304,38 @@ fun rememberWebViewWithLifecycle(url: String): WebView {
             }
 
             try {
-                webView.removeAllViews()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            try {
                 webView.clearHistory()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
             
-            try {
-                webView.destroy()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            // Critical warning: Never call webView.destroy() here. Doing so causes native crashes during 
+            // AnimatedContent transitions because parent layout hierarchies may process the detached 
+            // WebView container asynchronously. Let the Garbage Collector clean up the WebView safely.
         }
     }
 
-    return webView
+    // Custom back click handling: exit fullscreen or close the stream
+    BackHandler {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            onClose()
+        }
+    }
+
+    // Elegant Dark Theatre Backdrop
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ObsidianAbyss),
+        contentAlignment = Alignment.Center
+    ) {
+        AndroidView(
+            factory = { webView },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 // Tailored recursive helper to resolve holding activity from Context
