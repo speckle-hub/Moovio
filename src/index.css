@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Moovio — "Apple TV+ Minimal Cinematic" design system
+   ============================================================ */
+
+@theme {
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Color — monochrome + one accent */
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-elevated: #141414;
+  --color-ink: #fafafa;
+  --color-sub: #a1a1a6;
+  --color-mute: #6e6e73;
+  --color-hairline: rgba(255, 255, 255, 0.08);
+  --color-accent: #0a84ff;
+  --color-accent-strong: #3395ff;
+
+  /* Motion */
+  --ease-cinema: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shape */
+  --radius-poster: 10px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
+  }
+
+  ::selection {
+    background: rgba(10, 132, 255, 0.4);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232326;
+    border-radius: 9999px;
+    border: 3px solid #000;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #333336;
+  }
+}
+
+@layer components {
+  /* App-wide horizontal container with generous edges */
+  .container-x {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 1680px;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .container-x {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-x {
+      padding-inline: 3rem;
+    }
+  }
+
+  /* Pure-black cinematic fades for hero backdrops */
+  .hero-vignette {
+    background:
+      linear-gradient(to top, var(--color-bg) 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.15) 72%, rgba(0, 0, 0, 0) 100%),
+      linear-gradient(to right, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 45%, rgba(0, 0, 0, 0) 72%);
+  }
+
+  /* Poster-bottom reveal fade */
+  .poster-fade {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.4) 48%, rgba(0, 0, 0, 0) 72%);
+  }
+
+  /* Frosted chrome for the nav once it scrolls */
+  .glass {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Shimmer sweep for skeletons */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .shimmer-mask {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-mask::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
